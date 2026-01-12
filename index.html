@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>C. difficile Event Review Prompt Generator (Simple / No PHI)</title>
+<style>
+:root{
+  --primary:#5a007a;--primary-light:#7c2e9b;--dark:#212529;--border:#dee2e6;
+  --success:#198754;--danger:#dc3545;--warn:#b02a37;
+  --shadow:0 0 12px rgba(0,0,0,.08);--radius:12px;
+  --glow:0 0 0 2px rgba(122,0,153,.15),0 0 14px rgba(122,0,153,.25);
+}
+*{box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
+html,body{height:100%}
+body{margin:0;background:#f5f5f5;line-height:1.5;color:#1d1d1f}
+
+/* Header */
+.header{
+  padding:12px 18px;
+  background:#fff;
+  box-shadow:var(--shadow);
+  position:sticky; top:0; z-index:5;
+  display:flex; flex-direction:column; gap:6px;
+}
+.header h1{color:var(--primary);margin:0;font-size:1.15rem}
+.header .sub{font-size:.95rem;color:#444}
+.header .warn{font-size:.95rem;color:var(--warn);font-weight:800}
+
+/* Layout */
+.layout{
+  display:grid;
+  grid-template-columns:minmax(360px,1fr) minmax(420px,1fr);
+  gap:14px;
+  padding:14px;
+  max-width:1500px;
+  margin:0 auto
+}
+.panel{
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  display:flex; flex-direction:column;
+  min-height:calc(100vh - 130px)
+}
+.panel-header{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:#fff; z-index:3;
+  display:flex; align-items:center; justify-content:space-between; gap:10px
+}
+.panel-title{font-weight:800;color:#4b4b4b}
+.panel-body{padding:12px 14px;overflow:auto}
+
+/* Inputs */
+fieldset{border:1px solid var(--border);border-radius:12px;padding:10px;margin:0 0 14px}
+legend{padding:0 6px;color:var(--primary);font-weight:800}
+textarea{
+  width:100%;
+  min-height:180px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  resize:vertical;
+  background:#fff
+}
+select{cursor:pointer}
+select{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+}
+.help{font-size:.9rem;color:#5b5b5b}
+.small{font-size:.85rem;color:#666}
+.pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.pill{
+  border:1px solid var(--border);
+  background:#fafbfc;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:.85rem;
+  color:#444;
+}
+.note-label{
+  margin:12px 0 6px;
+  font-weight:800;
+  color:#333;
+}
+
+/* Buttons */
+button{
+  cursor:pointer;border:none;border-radius:12px;
+  padding:12px 18px;font-size:1rem;color:#fff;
+  display:inline-flex;align-items:center;gap:8px
+}
+.btn-primary{background:var(--primary)} .btn-primary:hover{background:var(--primary-light)}
+.btn-dark{background:var(--dark)} .btn-dark:hover{background:#343a40}
+.btn-wide{min-width:220px}
+.btn-glow{box-shadow:var(--glow);transition:box-shadow .2s, transform .02s}
+.btn-glow:hover{box-shadow:0 0 0 3px rgba(122,0,153,.18),0 0 18px rgba(122,0,153,.32)}
+.btn-glow:active{transform:translateY(1px)}
+button:disabled{opacity:.6;cursor:not-allowed}
+
+/* Output */
+.output-body{
+  white-space:pre-wrap;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.92rem; line-height:1.4;
+}
+
+/* PHI alert */
+.phi{
+  border:1px solid rgba(220,53,69,.35);
+  background:rgba(220,53,69,.06);
+  padding:10px 12px;
+  border-radius:12px;
+  margin-top:10px;
+}
+.phi strong{color:var(--danger)}
+.phi ul{margin:6px 0 0 18px}
+
+/* Toast */
+.toast{
+  position:fixed; bottom:18px; right:18px;
+  background:var(--success); color:#fff;
+  padding:10px 14px; border-radius:12px;
+  opacity:0; transform:translateY(50px);
+  transition:.25s; z-index:20
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  .panel{min-height:auto}
+}
+</style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>C. difficile Event Review — Prompt Generator (Simple / No PHI)</h1>
+    <div class="sub">
+      Paste <b>de-identified</b> text for <b>Day 0</b> (index day: test ordered/resulted).
+      If you have earlier notes, select how many and paste boxes will appear labeled <b>Day −1 … Day −4</b>.
+    </div>
+    <div class="warn">
+      Use <b>corporate M365 Copilot — Office version</b> only (look for the <b>lower-left profile/icon</b> to sign in). No names. No MRN. No PHI.
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Paste Notes</div>
+        <div class="help" style="margin-left:auto">De-identified review only</div>
+      </div>
+
+      <div class="panel-body">
+
+        <fieldset>
+          <legend>Index note (Day 0)</legend>
+          <textarea id="note0" placeholder="Paste Day 0 progress note text (de-identified)."></textarea>
+
+          <div class="pills">
+            <div class="pill" id="wc">Words: 0</div>
+            <div class="pill" id="tc">Est. tokens: 0</div>
+          </div>
+
+          <div id="phiBox" class="phi" style="display:none">
+            <strong>Possible identifiers detected.</strong>
+            <div class="small">Please remove before generating/copying. Detected patterns:</div>
+            <ul id="phiList"></ul>
+            <label class="small" style="display:block;margin-top:8px">
+              <input type="checkbox" id="confirmDeid" />
+              I confirm the pasted text is de-identified (no PHI).
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Prior notes (optional)</legend>
+
+          <div class="help">How many prior-day notes do you want to include?</div>
+          <select id="priorSelect" style="width:min(520px,100%)">
+            <option value="0" selected>None</option>
+            <option value="1">Day −1</option>
+            <option value="2">Day −1 to Day −2</option>
+            <option value="3">Day −1 to Day −3</option>
+            <option value="4">Day −1 to Day −4</option>
+          </select>
+
+          <div class="small" style="margin-top:8px">
+            Tip: if notes are long, paste only diarrhea, laxatives/tube feeds, antibiotics, vitals/labs, abdominal exam, isolation/TBP, and treatment decisions.
+          </div>
+
+          <!-- Boxes appear ONLY if dropdown > 0 -->
+          <div id="priorWrap" style="margin-top:12px;display:none">
+            <div id="priorBoxes"></div>
+          </div>
+        </fieldset>
+
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Generated Prompt</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="generate" class="btn-primary btn-wide btn-glow">Generate Prompt</button>
+          <button id="copyOpen" class="btn-dark btn-wide btn-glow" disabled>Copy & Open Copilot</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="output-body" id="promptOut">No prompt generated yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">Prompt copied ✔</div>
+
+<script>
+/******** DOM ********/
+const $ = (id)=>document.getElementById(id);
+const note0 = $("note0");
+const priorSelect = $("priorSelect");
+const priorWrap = $("priorWrap");
+const priorBoxes = $("priorBoxes");
+const genBtn = $("generate");
+const copyBtn = $("copyOpen");
+let currentPrompt = "";
+
+/******** Counts ********/
+function wordCount(t){ return (t.match(/\b\w+\b/g) || []).length; }
+function tokenEstimate(words){ return Math.round(words * 1.33); } // crude
+
+function priorTextareas(){
+  return Array.from(priorBoxes.querySelectorAll("textarea"));
+}
+
+function includedText(){
+  const n = parseInt(priorSelect.value,10);
+  let t = (note0.value || "");
+  const tas = priorTextareas();
+  for(let i=0;i<n;i++){
+    t += "\n\n" + (tas[i]?.value || "");
+  }
+  return t;
+}
+
+function updateCounts(){
+  const t = includedText();
+  const wc = wordCount(t);
+  $("wc").textContent = `Words: ${wc}`;
+  $("tc").textContent = `Est. tokens: ${tokenEstimate(wc)}`;
+  detectPHI();
+}
+note0.addEventListener("input", updateCounts);
+
+/******** PHI detector (simple) ********/
+function detectPossiblePHI(t){
+  const hits = [];
+  const tests = [
+    ["Email", /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i],
+    ["Phone", /(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/],
+    ["SSN", /\b\d{3}-\d{2}-\d{4}\b/],
+    ["Long ID/MRN-like", /\b\d{7,}\b/],
+    ["DOB/Date", /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/i],
+  ];
+  for(const [label,re] of tests){ if(re.test(t)) hits.push(label); }
+  return [...new Set(hits)];
+}
+
+function setCopyEnabled(enabled){ copyBtn.disabled = !enabled; }
+
+function detectPHI(){
+  const t = includedText();
+  const hits = detectPossiblePHI(t);
+  const phiBox = $("phiBox");
+  const phiList = $("phiList");
+  const confirm = $("confirmDeid");
+
+  if(hits.length){
+    phiBox.style.display = "";
+    phiList.innerHTML = hits.map(h=>`<li>${h}</li>`).join("");
+    if(!confirm.checked) setCopyEnabled(false);
+  }else{
+    phiBox.style.display = "none";
+    phiList.innerHTML = "";
+    confirm.checked = false;
+  }
+  return hits;
+}
+
+$("confirmDeid").addEventListener("change", ()=>{
+  const hits = detectPHI();
+  if(hits.length && !$("confirmDeid").checked){
+    setCopyEnabled(false);
+  }else{
+    if(currentPrompt) setCopyEnabled(true);
+  }
+});
+
+/******** Render prior boxes ONLY when selected ********/
+function renderPriorBoxes(){
+  const n = parseInt(priorSelect.value,10);
+  priorBoxes.innerHTML = "";
+  if(n <= 0){
+    priorWrap.style.display = "none";
+    return;
+  }
+  priorWrap.style.display = "";
+
+  for(let i=1;i<=n;i++){
+    const lab = document.createElement("div");
+    lab.className = "note-label";
+    lab.textContent = `Day −${i} (relative to Day 0)`;
+
+    const ta = document.createElement("textarea");
+    ta.id = `note_minus_${i}`;
+    ta.placeholder = `Paste Day −${i} progress note text (de-identified).`;
+    ta.style.minHeight = "120px";
+    ta.addEventListener("input", updateCounts);
+
+    priorBoxes.appendChild(lab);
+    priorBoxes.appendChild(ta);
+  }
+}
+
+/* Dropdown change -> show/hide & rebuild boxes */
+priorSelect.addEventListener("change", ()=>{
+  renderPriorBoxes();
+  updateCounts();
+});
+
+renderPriorBoxes();
+
+/******** Build prompt notes block ********/
+function buildNotesBlock(){
+  const n = parseInt(priorSelect.value,10);
+  let out = `## Day 0 (Index note — Dx/test day)\n${(note0.value||"").trim() || "[No text provided]"}\n`;
+
+  const tas = priorTextareas();
+  for(let i=0;i<n;i++){
+    out += `\n## Day −${i+1}\n${(tas[i]?.value||"").trim() || "[No text provided]"}\n`;
+  }
+  return out;
+}
+
+/******** Prompt generation ********/
+genBtn.addEventListener("click", ()=>{
+  const idx = (note0.value || "").trim();
+  if(!idx){
+    alert("Please paste the index note (Day 0).");
+    return;
+  }
+
+  const hits = detectPHI();
+  if(hits.length && !$("confirmDeid").checked){
+    alert("Possible identifiers detected. Remove PHI or confirm de-identification before generating/copying.");
+    return;
+  }
+
+  const p =
+`You are an infection prevention / quality review assistant for a **C. difficile event review**.
+This is a **de-identified** internal review.
+
+
+OUTPUT CONSTRAINTS (token-mindful):
+- Be concise. Prefer bullets.
+- Do NOT quote long note passages.
+- For "Evidence", include a **very short snippet** (<= 12 words) or a **tight paraphrase** tied to a day label.
+- Keep total output to ~350–650 tokens when possible.
+
+IMPORTANT:
+- This is NOT clinical decision support. Do not provide direct patient-care orders.
+- Be conservative. Separate supported vs uncertain.
+- Provide a **degree of certitude** and the **missing facts** that would increase certainty.
+- Assume Day 0 is the day C. diff testing was ordered and/or resulted; Day −1…−4 are prior days.
+
+Context reminder:
+- Use corporate M365 Copilot — Office version only (lower-left profile/icon to sign in). No PHI.
+
+=== NOTES (Day 0 to prior days) ===
+${buildNotesBlock()}
+
+---
+REQUIRED OUTPUT (use these exact section headers)
+
+0) Structured Answer Set (Yes/No/Unclear + Evidence)
+Answer EACH item below. For each line use:
+- Answer: Yes / No / Unclear
+- Evidence: "Day X: <short snippet/paraphrase>" OR "Unclear — not documented"
+
+A) ≥3 unexplained/unformed stools within 24h at time of test order?
+B) Prior history of C. difficile?
+C) Systemic antibiotics in last 60 days before positive test?
+D) Signs/symptoms at time test ordered (select all that apply; if not documented, mark Unclear):
+   - Fever >38°C
+   - Abdominal tenderness/cramping/distention
+   - WBC >10k within 24h of unformed stools
+   - Recent chemotherapy/immunosuppression
+   - None of the above (ONLY if the record explicitly supports none)
+E) Confounders within last 48h (select all that apply; if not documented, mark Unclear):
+   - Laxatives
+   - Enemas
+   - Tube feeds
+   - Bowel prep
+   - None of the above (ONLY if explicitly supported)
+F) Date admitted (M/d/yyyy if present; otherwise Unclear)
+G) Met clinical criteria on day 1-2-3 upon admission? (POA window concept)
+H) Hospital location where C. diff test ordered:
+   - ED / ICU / Non-ICU / Other / Unclear
+I) Date initial C. diff testing ordered (M/d/yyyy if present; otherwise Unclear)
+J) Test result type (choose ONE if documented; otherwise Unclear):
+   - GDH+/Toxin EIA+
+   - GDH+/Toxin EIA-/Toxin gene PCR+
+K) Treated after result posted? (Yes/No/Unclear) — if Yes, state what therapy is documented.
+L) In timeframe, adherence deficient to hand hygiene and/or transmission-based precautions?
+M) Potential opportunities identified (select all that apply; each must have Evidence or Unclear):
+   - Clinical criteria for testing not met
+   - Earlier diagnosis (POA window)
+   - Earlier specimen collection (POA window)
+   - Diagnosis of likely colonization
+   - Antimicrobial prescribing appropriateness
+   - Transmission prevention (HH, SP, TBP, EVS)
+   - None of the above (ONLY if record supports no opportunities)
+
+1) Certitude
+- "Certitude: High / Moderate / Low"
+- 3 bullets why
+- Top 3 missing facts that would raise certitude
+
+2) Unanswered Questions to Share with the Care Team
+- First choose emphasis role based on what gaps are most actionable from the notes:
+  "Emphasis: MD" OR "Emphasis: Nurse" OR "Emphasis: PCT" (1 sentence why)
+- Then list 10–14 questions total:
+  - 6–8 for the emphasized role
+  - 2–3 each for the other roles
+- Questions must be bedside/actionable (who/what/when).
+
+3) Follow-up Questions for Next Rounds (short list)
+- 5–8 concise questions to close gaps and prevent recurrence.
+
+4) Timeline (place near the END as requested)
+- Day −4 → Day 0 (only the days provided)
+- For each day: stool frequency/consistency; confounders; antibiotics; vitals/labs; abd findings; isolation/TBP; test/treatment milestones.
+- If missing: "Not documented".
+
+5) Executive Summary (place LAST as requested)
+- 3–6 bullets summarizing what happened + key uncertainty + top opportunity.
+
+Remember: conservative tone, no PHI, token-mindful.`;
+
+  $("promptOut").textContent = p;
+  currentPrompt = p;
+  setCopyEnabled(!(hits.length && !$("confirmDeid").checked));
+});
+
+/******** Copy & open ********/
+copyBtn.addEventListener("click", ()=>{
+  if(!currentPrompt){ alert("No prompt generated."); return; }
+  const hits = detectPHI();
+  if(hits.length && !$("confirmDeid").checked){
+    alert("Possible identifiers detected. Remove PHI or confirm de-identification before copying.");
+    return;
+  }
+  navigator.clipboard.writeText(currentPrompt).then(()=>{
+    const t = $("toast"); t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 1800);
+    window.open("https://copilot.microsoft.com", "_blank");
+  }).catch(()=>alert("Copy failed."));
+});
+
+/******** init ********/
+updateCounts();
+</script>
+</body>
+</html>
